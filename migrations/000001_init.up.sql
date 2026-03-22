@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS todoapp.tasks(
     completed BOOLEAN NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     completed_at TIMESTAMPTZ,
+    author_user_id INTEGER NOT NULL REFERENCES todoapp.users(id),
 
     CHECK (
         (completed=FALSE AND completed_at IS NULL)
@@ -25,5 +26,4 @@ CREATE TABLE IF NOT EXISTS todoapp.tasks(
         (completed=TRUE AND completed_at IS NOT NULL AND completed_at >= created_at)
     )
 
-    author_user_id INTEGER NOT NULL REFERENCES todoapp.users(id)
 );
