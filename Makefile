@@ -21,6 +21,13 @@ env-cleanup:
 		echo "Clear stopped"; \
 	fi
 
+env-port-forwarder:
+	@docker compose up -d port-forwarder
+
+env-port-close:
+	@docker compose down port-forwarder
+
+
 migarte-create:
 	@if [ -z "$(seq)" ]; then \
 		echo "doesnt seq, make migarte-create seq=init"; \
@@ -43,7 +50,7 @@ migrate-action:
 		echo "doesnt action, make migarte-action action=up/down"; \
 		exit 1; \
 	fi; \
-	docker compose run --rm todoapp-postgres-migarte \
+	docker compose run --rm todoapp-postgres-migrate \
 		-path /migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todoapp-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		"${action}"
