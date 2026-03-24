@@ -32,7 +32,7 @@ func NewLogger(config Config) (*Logger, error) {
 		return nil, fmt.Errorf("unmarshal log level %w", err)
 	}
 
-	if err := os.Mkdir(config.Folder, 0755); err != nil {
+	if err := os.MkdirAll(config.Folder, 0755); err != nil {
 		return nil, fmt.Errorf("mkdir log folder %w", err)
 	}
 

@@ -7,20 +7,23 @@ import (
 	"net/http"
 
 	core_logger "github.com/Kor1992/todo/internal/core/logger"
+	core_middleware "github.com/Kor1992/todo/internal/core/transport/http/middleware"
 	"go.uber.org/zap"
 )
 
 type HTTPServer struct {
-	mux    *http.ServeMux
-	config Config
-	log    *core_logger.Logger
+	mux        *http.ServeMux
+	config     Config
+	log        *core_logger.Logger
+	middleware []core_middleware.MiddleWare
 }
 
-func NewHTTPServer(config Config, log *core_logger.Logger) *HTTPServer {
+func NewHTTPServer(config Config, log *core_logger.Logger, middleware ...core_middleware.MiddleWare) *HTTPServer {
 	return &HTTPServer{
-		mux:    http.NewServeMux(),
-		config: config,
-		log:    log,
+		mux:        http.NewServeMux(),
+		config:     config,
+		log:        log,
+		middleware: middleware,
 	}
 }
 
@@ -33,9 +36,11 @@ func (h *HTTPServer) RegisterAPIRouter(routers ...*APIVersionRouter) {
 }
 
 func (h *HTTPServer) Run(ctx context.Context) error {
+	mux := core_middleware.ChainMiddleWare(h.mux, h.middleware...)
+
 	server := &http.Server{
 		Addr:    h.config.Addr,
-		Handler: h.mux,
+		Handler: mux,
 	}
 
 	ch := make(chan error, 1)
