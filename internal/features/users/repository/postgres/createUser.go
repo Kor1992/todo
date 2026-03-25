@@ -32,7 +32,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user domain.User) (doma
 		return domain.User{}, fmt.Errorf("scan error %w", err)
 	}
 
-	userDomain := domain.NewUser(userModel.FullName, &userModel.PhoneNumber, userModel.ID, userModel.Version)
+	userDomain := domain.NewUser(userModel.FullName, userModel.PhoneNumber, userModel.ID, userModel.Version)
 
 	return userDomain, nil
 }
