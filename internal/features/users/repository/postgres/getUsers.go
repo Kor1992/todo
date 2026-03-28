@@ -14,7 +14,7 @@ func (r *UserRepository) GetUsers(ctx context.Context, limit *int, offset *int) 
 	query := `
 	SELECT id, version, full_name, phone_number
 	FROM todoapp.users
-	ORDER BY id ASK
+	ORDER BY id ASC
 	LIMIT $1
 	OFFSET $2
 	`
