@@ -7,7 +7,7 @@ import (
 
 	"github.com/Kor1992/todo/internal/core/domain"
 	core_errors "github.com/Kor1992/todo/internal/core/errors"
-	"github.com/jackc/pgx/v5"
+	core_postgres_pool "github.com/Kor1992/todo/internal/core/repositore/postgres/pool"
 )
 
 func (r *UserRepository) GetUser(ctx context.Context, id int) (domain.User, error) {
@@ -17,7 +17,7 @@ func (r *UserRepository) GetUser(ctx context.Context, id int) (domain.User, erro
 	query := `
 	SELECT id, version, full_name, phone_number
 	FROM todoapp.users
-	WHERE id=$1
+	WHERE id=$1;
 	`
 	row := r.pool.QueryRow(ctx, query, id)
 
@@ -30,8 +30,8 @@ func (r *UserRepository) GetUser(ctx context.Context, id int) (domain.User, erro
 		&userModel.PhoneNumber,
 	)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return domain.User{}, fmt.Errorf("user with id %d: %w %w", id, err, core_errors.ErrNotFound)
+		if errors.Is(err, core_postgres_pool.ErrNoRows) {
+			return domain.User{}, fmt.Errorf("user with id %d: %v %w", id, err, core_errors.ErrNotFound)
 		} else {
 			return domain.User{}, fmt.Errorf("scan error %w", err)
 		}
