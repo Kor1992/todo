@@ -6,18 +6,27 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	core_logger "github.com/Kor1992/todo/internal/core/logger"
 	core_pgx_pool "github.com/Kor1992/todo/internal/core/repositore/postgres/pool/pgx"
 	core_middleware "github.com/Kor1992/todo/internal/core/transport/http/middleware"
 	core_http_server "github.com/Kor1992/todo/internal/core/transport/http/server"
+	task_postgres "github.com/Kor1992/todo/internal/features/tasks/repository/postgres"
+	task_servis "github.com/Kor1992/todo/internal/features/tasks/servis"
+	tasks_transport_http "github.com/Kor1992/todo/internal/features/tasks/transport/http"
 	users_postgres_repository "github.com/Kor1992/todo/internal/features/users/repository/postgres"
 	users_service "github.com/Kor1992/todo/internal/features/users/service"
 	users_transport_http "github.com/Kor1992/todo/internal/features/users/transport/http"
 	"go.uber.org/zap"
 )
 
+var (
+	timeZone = time.UTC
+)
+
 func main() {
+	time.Local = timeZone
 
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
@@ -31,6 +40,8 @@ func main() {
 		os.Exit(1)
 	}
 	defer log.Close()
+
+	log.Debug("application time zone", zap.Any("zone", timeZone))
 
 	log.Debug("initializing pgx connection pool")
 	pool, err := core_pgx_pool.NewPool(ctx, core_pgx_pool.NewConfigMust())
@@ -46,6 +57,11 @@ func main() {
 	usersService := users_service.NewUserService(usersRepository)
 	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(usersService)
 
+	log.Debug("initializing feature", zap.String("feature", "tasks"))
+	tasksRepositore := task_postgres.NewTasksRepository(pool)
+	tasksService := task_servis.NewTasksService(tasksRepositore)
+	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
+
 	log.Debug("initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(core_http_server.NewConfigMust(),
 		log,
@@ -57,6 +73,7 @@ func main() {
 
 	apiVersionRouterV1 := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routers()...)
+	apiVersionRouterV1.RegisterRoutes(tasksTransportHTTP.Routes()...)
 
 	// apiVersionRouterV2 := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion2, core_middleware.Dummy("api v2 middleware"))
 	// apiVersionRouterV2.RegisterRoutes(usersTransportHTTP.Routers()...)
