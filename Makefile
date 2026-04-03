@@ -28,7 +28,7 @@ env-port-close:
 	@docker compose down port-forwarder
 
 
-migarte-create:
+migrate-create:
 	@if [ -z "$(seq)" ]; then \
 		echo "doesnt seq, make migarte-create seq=init"; \
 		exit 1; \
@@ -54,6 +54,17 @@ migrate-action:
 		-path /migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todoapp-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		"${action}"
+
+
+logs-cleanup:
+	@read -p "clear all logs files? [y, N]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+		rm -rf ${PROJECT_ROOT}/out/logs && \
+		echo "Files cleared"; \
+	else \
+		echo "Clear stopped"; \
+	fi
+
 
 todoapp-run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
