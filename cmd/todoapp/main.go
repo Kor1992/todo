@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	core_config "github.com/Kor1992/todo/internal/core/config"
 	core_logger "github.com/Kor1992/todo/internal/core/logger"
 	core_pgx_pool "github.com/Kor1992/todo/internal/core/repositore/postgres/pool/pgx"
 	core_middleware "github.com/Kor1992/todo/internal/core/transport/http/middleware"
@@ -21,12 +22,9 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	timeZone = time.UTC
-)
-
 func main() {
-	time.Local = timeZone
+	cfg := core_config.NewConfigMust()
+	time.Local = cfg.TimeZone
 
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
@@ -41,7 +39,7 @@ func main() {
 	}
 	defer log.Close()
 
-	log.Debug("application time zone", zap.Any("zone", timeZone))
+	log.Debug("application time zone", zap.Any("zone", time.Local))
 
 	log.Debug("initializing pgx connection pool")
 	pool, err := core_pgx_pool.NewPool(ctx, core_pgx_pool.NewConfigMust())
