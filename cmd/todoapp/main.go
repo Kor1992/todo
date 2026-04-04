@@ -13,6 +13,9 @@ import (
 	core_pgx_pool "github.com/Kor1992/todo/internal/core/repositore/postgres/pool/pgx"
 	core_middleware "github.com/Kor1992/todo/internal/core/transport/http/middleware"
 	core_http_server "github.com/Kor1992/todo/internal/core/transport/http/server"
+	statistics_postgres_repository "github.com/Kor1992/todo/internal/features/statistics/repository"
+	statistics_service "github.com/Kor1992/todo/internal/features/statistics/service"
+	statistics_transport_http "github.com/Kor1992/todo/internal/features/statistics/transport/http"
 	task_postgres "github.com/Kor1992/todo/internal/features/tasks/repository/postgres"
 	task_servis "github.com/Kor1992/todo/internal/features/tasks/servis"
 	tasks_transport_http "github.com/Kor1992/todo/internal/features/tasks/transport/http"
@@ -60,6 +63,11 @@ func main() {
 	tasksService := task_servis.NewTasksService(tasksRepositore)
 	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
 
+	log.Debug("initializing feature", zap.String("feature", "statistics"))
+	statisticsRepository := statistics_postgres_repository.NewStatisticsRepository(pool)
+	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
+	statisticsTransportHTTP := statistics_transport_http.NewStatisticsHTTPHandler(statisticsService)
+
 	log.Debug("initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(core_http_server.NewConfigMust(),
 		log,
@@ -72,6 +80,7 @@ func main() {
 	apiVersionRouterV1 := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routers()...)
 	apiVersionRouterV1.RegisterRoutes(tasksTransportHTTP.Routes()...)
+	apiVersionRouterV1.RegisterRoutes(statisticsTransportHTTP.Routes()...)
 
 	// apiVersionRouterV2 := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion2, core_middleware.Dummy("api v2 middleware"))
 	// apiVersionRouterV2.RegisterRoutes(usersTransportHTTP.Routers()...)
