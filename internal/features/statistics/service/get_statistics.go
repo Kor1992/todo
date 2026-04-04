@@ -56,10 +56,5 @@ func calcStatistics(tasks []domain.Task) domain.Statistics {
 		tasksAverageCompletedTime = &avg
 	}
 
-	return domain.Statistics{
-		TasksCreated:              tasksCreated,
-		TaskCompleted:             tasksCompleted,
-		TasksCompletedRate:        &tasksCompletedRate,
-		TasksAverageCompletedTime: tasksAverageCompletedTime,
-	}
+	return domain.NewStatistics(tasksCreated, tasksCompleted, &tasksCompletedRate, tasksAverageCompletedTime)
 }
