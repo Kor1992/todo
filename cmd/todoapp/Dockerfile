@@ -10,5 +10,6 @@ FROM alpine:3.23
 WORKDIR /app
 COPY --from=builder /app/cmd/todoapp/exe /app
 COPY --from=builder /app/docs ./docs   
+COPY --from=builder /app/public /app/public
+ENV PROJECT_ROOT=/app
 CMD ["/app/exe"]
-COPY --from=builder /app/docs ./docs

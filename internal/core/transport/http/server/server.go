@@ -99,6 +99,12 @@ func (s *HTTPServer) Run(ctx context.Context) error {
 }
 
 func (s *HTTPServer) RegisterStatic() {
-	fs := http.FileServer(http.Dir("./web"))
-	s.mux.Handle("/", fs)
+	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Если запрос не на API и не на Swagger — отдаём index.html
+		if r.URL.Path == "/" {
+			http.ServeFile(w, r, "./public/index.html")
+			return
+		}
+		http.ServeFile(w, r, "./public/"+r.URL.Path)
+	})
 }
