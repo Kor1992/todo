@@ -12,12 +12,12 @@ import (
 	core_http_types "github.com/Kor1992/todo/internal/core/transport/http/types"
 )
 
-type PatcUserRequest struct {
-	FullName    core_http_types.Nullable[string] `json:"full_name"`
-	PhoneNumber core_http_types.Nullable[string] `json:"phone_number"`
+type PatchUserRequest struct {
+	FullName    core_http_types.Nullable[string] `json:"full_name" swaggertype:"string" example:"Маким Максимович"`
+	PhoneNumber core_http_types.Nullable[string] `json:"phone_number" swaggertype:"string" example:"+79998887766"`
 }
 
-func (p *PatcUserRequest) Validate() error {
+func (p *PatchUserRequest) Validate() error {
 	if p.FullName.Set {
 		if p.FullName.Value == nil {
 			return fmt.Errorf("fullName can't be null")
@@ -47,6 +47,25 @@ func (p *PatcUserRequest) Validate() error {
 
 type PatchUserResponse UserDtoResponse
 
+// PatchUser     godoc
+// @Summary      Изменение пользователя
+// @Description  Изменение информации об уже существующем в системе пользователе
+// @Description  ### Логика обновления полей (Three-state logic):
+// @Description  1. **Поле не передано**: `phone_number` игнорируется, значение в БД не меняется
+// @Description  2. **Явно передано значение**: `"phone_number": "+711122233344"` - устанавливает новый номер телефона в БД
+// @Description  3. **Передан null**: `"phone_number": null` - очищает поле в БД (set to NULL)
+// @Description  Ограничения: `full_name` не может быть выставлен как null
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id      path int          true            "ID изменяемого пользователя" Format(uuid)
+// @Param        request body PatchUserRequest true            "PatchUser тело запроса"
+// @Success      200 {object} PatchUserResponse                "Успешно изменённый пользователь"
+// @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure      404 {object} core_http_response.ErrorResponse "User not found"
+// @Failure      409 {object} core_http_response.ErrorResponse "Conflict"
+// @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router       /users/{id} [patch]
 func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -59,7 +78,7 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request PatcUserRequest
+	var request PatchUserRequest
 	if err := core_http_request.DecodeAndVolidateRequest(r, &request); err != nil {
 		responseHandler.ErrorResponse(err, "failed to decode and validate HTTP request")
 		return
@@ -78,6 +97,6 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-func userPatchFromRequest(request PatcUserRequest) domain.UserPatch {
+func userPatchFromRequest(request PatchUserRequest) domain.UserPatch {
 	return domain.NewUserPatch(request.FullName.ToDomain(), request.PhoneNumber.ToDomain())
 }
