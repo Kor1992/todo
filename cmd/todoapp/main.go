@@ -76,7 +76,9 @@ func main() {
 	statisticsTransportHTTP := statistics_transport_http.NewStatisticsHTTPHandler(statisticsService)
 
 	log.Debug("initializing HTTP server")
-	httpServer := core_http_server.NewHTTPServer(core_http_server.NewConfigMust(),
+	httpConfig := core_http_server.NewConfigMust()
+	httpServer := core_http_server.NewHTTPServer(
+		httpConfig,
 		log,
 		core_middleware.CORS(),
 		core_middleware.RequestId(),

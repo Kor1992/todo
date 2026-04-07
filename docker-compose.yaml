@@ -8,6 +8,7 @@ services:
       - ${PROJECT_ROOT}/.env
     environment:
       - HTTP_ADDR=:5050
+      # - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - POSTGRES_HOST=todoapp-postgres
       - REDIS_HOST=todoapp-redis
       - LOGGER_FOLDER=/app/out/logs
