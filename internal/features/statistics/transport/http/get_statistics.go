@@ -5,11 +5,46 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Kor1992/todo/internal/core/domain"
 	core_logger "github.com/Kor1992/todo/internal/core/logger"
 	core_http_request "github.com/Kor1992/todo/internal/core/transport/http/request"
 	core_http_response "github.com/Kor1992/todo/internal/core/transport/http/response"
 )
 
+type GetStatisticsDto struct {
+	TasksCreated              int      `json:"tasks_created"`
+	TaskCompleted             int      `json:"tasks_completed"`
+	TasksCompletedRate        *float64 `json:"tasks_completed_rate"`
+	TasksAverageCompletedTime *string  `json:"tasks_averege_completed_time"`
+}
+
+func toDTOFromDomain(stat domain.Statistics) GetStatisticsDto {
+	var avgTime *string
+	if stat.TasksAverageCompletedTime != nil {
+		duration := stat.TasksAverageCompletedTime.String()
+		avgTime = &duration
+	}
+
+	return GetStatisticsDto{
+		TasksCreated:              stat.TasksCreated,
+		TaskCompleted:             stat.TaskCompleted,
+		TasksCompletedRate:        stat.TasksCompletedRate,
+		TasksAverageCompletedTime: avgTime,
+	}
+}
+
+// GetStatistics godoc
+// @Summary      Получение статистики
+// @Description  Получение статистики по задачам с опциональной фильтрацией по user_id и/или временному промежутку
+// @Tags         statistics
+// @Produce      json
+// @Param        user_id  query     int     false  "Фильтрация статистики по конкретному пользователю"
+// @Param        from     query     string  false "Начало промежутка рассмотрения статистики (включительно), формат: YYYY-MM-DD"
+// @Param        to       query     string  false "Конец промежутся рассмотрения статистики (не включительно), формат: YYYY-MM-DD"
+// @Success      200      {object}  GetStatisticsDto "Успешное получение статистики"
+// @Failure      400      {object}  core_http_response.ErrorResponse "Bad request"
+// @Failure      500      {object}  core_http_response.ErrorResponse "Internal server error"
+// @Router       /statistics [get]
 func (h *StatisticsHTTPHandler) GetStatistics(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
