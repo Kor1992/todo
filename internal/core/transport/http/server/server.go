@@ -97,3 +97,8 @@ func (s *HTTPServer) Run(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (s *HTTPServer) RegisterStatic() {
+	fs := http.FileServer(http.Dir("./web"))
+	s.mux.Handle("/", fs)
+}
